@@ -27,5 +27,5 @@ jobs:
         application_name: MyDotNetApp
         environment_name: MyDotNetApplication-Env
         version_label: 12345
-        region: us-west-2
+        region: us-east-2
         deployment_package: deploy.zip
