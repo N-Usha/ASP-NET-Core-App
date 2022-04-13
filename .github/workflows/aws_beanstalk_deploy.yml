@@ -18,14 +18,35 @@ jobs:
 
     - name: Generate deployment package
       run: zip -r deploy.zip . -x '*.git*'
-
-    - name: Deploy to EB
-      uses: einaregilsson/beanstalk-deploy@v20
+    
+    #copy files to s3 bucket
+    - name: Use AWS Action to Copy the zip to s3 bucket
+      uses: actions/aws/cli@master 
       with:
-        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: Node_demo
-        environment_name: NodeDemo
-        version_label: 12345
-        region: us-east-2
-        deployment_package: deploy.zip
+        args: s3 cp deploy.zip s3://elasticbeanstalk-us-east-2-653237029202/ 
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+    
+    #create application
+    - name: Use AWS Action to Create a new version for ElasticBeanstalk Application
+      uses: actions/aws/cli@master 
+      with:
+        args: elasticbeanstalk create-application-version --application-name Node_demo --version-label v1.0 --description NodeAppv1 --source-bundle S3Bucket="elasticbeanstalk-us-east-2-653237029202",S3Key="deploy.zip"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
+    #deploy elasticbeanstalk
+    - name: Use AWS Action to Deploy the new version for ElasticBeanstalk Application by updating the envionment
+      uses: actions/aws/cli@master 
+      with:
+        args: elasticbeanstalk update-environment --application-name Node_demo --environment-name NodeDemo-env --version-label v1.0
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
+
