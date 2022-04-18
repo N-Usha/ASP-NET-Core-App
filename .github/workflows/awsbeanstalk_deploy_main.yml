@@ -27,5 +27,5 @@ jobs:
         application_name: dotNetApp
         environment_name: Dotnetapp-env
         version_label: 12346
-        region: us-east-2
+        region: us-east-1
         deployment_package: deploy.zip
